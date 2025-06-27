@@ -2,11 +2,12 @@
   "name": "medical",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://sachinle.github.io/medicareplus",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-     "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
