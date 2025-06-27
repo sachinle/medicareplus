@@ -2,11 +2,11 @@
   <div class="confirmation-page">
     <div class="container">
       <div class="confirmation-card">
-        <div class="confirmation-icon">
-          <img src="https://cdn.dribbble.com/users/2185205/screenshots/7886140/media/2f5a87a6f2a8d1a184c3a94e1a3e1a5e.gif" 
-               alt="Success" 
-               class="success-gif">
-        </div>
+        <div class="premium-confirmation-icon">
+                <img src="https://cdn.dribbble.com/userupload/23589345/file/original-3facc6dbca53f39fa3175635da27a61a.gif" 
+                     alt="Success" 
+                     class="success-gif">
+              </div>
         <h1 class="confirmation-title">Payment Successful!</h1>
         <p class="confirmation-text">
           Thank you for your order. Your payment of ₹{{ amount }} has been processed successfully.
@@ -31,6 +31,7 @@
   </div>
 </template>
 
+
 <script>
 import { jsPDF } from 'jspdf';
 
@@ -40,7 +41,7 @@ export default {
       orderId: this.generateOrderId(),
       deliveryDate: this.getDeliveryDate(),
       amount: this.$route.query.amount || '0.00',
-      items: this.$route.query.items ? JSON.parse(this.$route.query.items) : [],
+      items: [],
       storeInfo: {
         name: "MediCare+",
         address: "Rathinam Technical Campus, Coimbatore, Tamil Nadu 641021",
@@ -50,73 +51,84 @@ export default {
       }
     }
   },
+  created() {
+    // Parse the items from route query
+    if (this.$route.query.items) {
+      try {
+        this.items = JSON.parse(this.$route.query.items);
+      } catch (e) {
+        console.error('Error parsing items:', e);
+        this.items = [];
+      }
+    }
+  },
   methods: {
     generateOrderId() {
-      return 'ORD-' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0')
+      return 'ORD-' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
     },
     getDeliveryDate() {
-      const date = new Date()
-      date.setDate(date.getDate() + 3)
+      const date = new Date();
+      date.setDate(date.getDate() + 3);
       return date.toLocaleDateString('en-IN', { 
         weekday: 'long', 
         day: 'numeric', 
         month: 'long' 
-      })
+      });
     },
     downloadInvoice() {
-      const doc = new jsPDF()
+      const doc = new jsPDF();
 
       // Store Info
-      doc.setFontSize(20).setTextColor(106, 27, 154)
-      doc.text(this.storeInfo.name, 105, 20, { align: 'center' })
+      doc.setFontSize(20).setTextColor(106, 27, 154);
+      doc.text(this.storeInfo.name, 105, 20, { align: 'center' });
 
-      doc.setFontSize(10).setTextColor(96, 125, 139)
-      doc.text(this.storeInfo.address, 105, 30, { align: 'center' })
-      doc.text(`Phone: ${this.storeInfo.phone} | Email: ${this.storeInfo.email}`, 105, 35, { align: 'center' })
-      doc.text(`GSTIN: ${this.storeInfo.gstin}`, 105, 40, { align: 'center' })
+      doc.setFontSize(10).setTextColor(96, 125, 139);
+      doc.text(this.storeInfo.address, 105, 30, { align: 'center' });
+      doc.text(`Phone: ${this.storeInfo.phone} | Email: ${this.storeInfo.email}`, 105, 35, { align: 'center' });
+      doc.text(`GSTIN: ${this.storeInfo.gstin}`, 105, 40, { align: 'center' });
 
       // Invoice Title
-      doc.setFontSize(16).setTextColor(106, 27, 154)
-      doc.text('TAX INVOICE', 105, 50, { align: 'center' })
-      doc.setDrawColor(96, 125, 139)
-      doc.line(20, 55, 190, 55)
+      doc.setFontSize(16).setTextColor(106, 27, 154);
+      doc.text('TAX INVOICE', 105, 50, { align: 'center' });
+      doc.setDrawColor(96, 125, 139);
+      doc.line(20, 55, 190, 55);
 
       // Order Details
-      doc.setFontSize(10).setTextColor(33, 33, 33)
-      doc.text(`Order ID: ${this.orderId}`, 20, 65)
-      doc.text(`Order Date: ${new Date().toLocaleDateString('en-IN')}`, 20, 70)
-      doc.text(`Order Time: ${new Date().toLocaleTimeString('en-IN')}`, 20, 75)
+      doc.setFontSize(10).setTextColor(33, 33, 33);
+      doc.text(`Order ID: ${this.orderId}`, 20, 65);
+      doc.text(`Order Date: ${new Date().toLocaleDateString('en-IN')}`, 20, 70);
+      doc.text(`Order Time: ${new Date().toLocaleTimeString('en-IN')}`, 20, 75);
 
       // Table Header
-      doc.setFillColor(232, 234, 246)
-      doc.rect(20, 90, 170, 10, 'F')
-      doc.setFontSize(10).setTextColor(106, 27, 154).setFont(undefined, 'bold')
-      doc.text('S.No', 25, 96)
-      doc.text('Description', 40, 96)
-      doc.text('Price', 120, 96, { align: 'right' })
-      doc.text('Qty', 150, 96, { align: 'center' })
-      doc.text('Amount', 190, 96, { align: 'right' })
-      doc.setFont(undefined, 'normal').setTextColor(33, 33, 33)
+      doc.setFillColor(232, 234, 246);
+      doc.rect(20, 90, 170, 10, 'F');
+      doc.setFontSize(10).setTextColor(106, 27, 154).setFont(undefined, 'bold');
+      doc.text('S.No', 25, 96);
+      doc.text('Description', 40, 96);
+      doc.text('Price', 120, 96, { align: 'right' });
+      doc.text('Qty', 150, 96, { align: 'center' });
+      doc.text('Amount', 190, 96, { align: 'right' });
+      doc.setFont(undefined, 'normal').setTextColor(33, 33, 33);
 
-      // Table Body
-      let y = 105
-      let subtotal = 0
+      // Table Body - Fixed to properly use this.items
+      let y = 105;
+      let subtotal = 0;
 
       this.items.forEach((item, index) => {
-        const itemTotal = item.price * item.quantity
-        subtotal += itemTotal
+        const itemTotal = item.price * item.quantity;
+        subtotal += itemTotal;
 
-        const title = item.title.length > 50 ? item.title.substring(0, 47) + '...' : item.title
+        // Ensure item.title exists and limit length
+        const title = item.title ? (item.title.length > 50 ? item.title.substring(0, 47) + '...' : item.title) : '';
 
-        doc.text(`${index + 1}`, 25, y)
-        doc.text(title, 40, y)
-        doc.text(`₹${item.price.toFixed(2)}`, 120, y, { align: 'right' })
-        doc.text(`${item.quantity}`, 150, y, { align: 'center' })
-        doc.text(`₹${itemTotal.toFixed(2)}`, 190, y, { align: 'right' })
+        doc.text(`${index + 1}`, 25, y);
+        doc.text(title, 40, y);
+        doc.text(`₹${item.price ? item.price.toFixed(2) : '0.00'}`, 120, y, { align: 'right' });
+        doc.text(`${item.quantity || 1}`, 150, y, { align: 'center' });
+        doc.text(`₹${itemTotal.toFixed(2)}`, 190, y, { align: 'right' });
 
-        y += 7
+        y += 7;
       })
-
       // Summary
       const gstRate = 18
       const gstAmount = (subtotal * gstRate) / 100

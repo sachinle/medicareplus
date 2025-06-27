@@ -266,18 +266,25 @@ export default {
       this.cardDetails.expiry = value
     },
     processPayment() {
-      this.processing = true
-      // Simulate payment processing
-      setTimeout(() => {
-        this.$router.push({
-          name: 'OrderConfirmation',
-          query: {
-            amount: this.totalAmount,
-            items: JSON.stringify(this.cartItems)
-          }
-        })
-      }, 2000)
-    }
+  this.processing = true;
+  // Create a clean items array with only necessary fields
+  const invoiceItems = this.cartItems.map(item => ({
+    id: item.id,
+    title: item.title,
+    price: item.price,
+    quantity: item.quantity
+  }));
+  
+  setTimeout(() => {
+    this.$router.push({
+      path: '/order-confirmation',
+      query: {
+        amount: this.totalAmount,
+        items: JSON.stringify(invoiceItems) // Stringify the simplified array
+      }
+    });
+  }, 2000);
+}
   }
 }
 </script>
