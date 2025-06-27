@@ -110,15 +110,13 @@
             <input type="checkbox" id="terms" v-model="acceptTerms">
             <label for="terms">I agree to the <a href="#">Terms & Conditions</a></label>
           </div>
-          <router-link to="/order-confirmation" class="continue-shopping-link">
-            <button class="pay-button" @click="processPayment" :disabled="!isFormValid || processing">
+          
+          <button class="pay-button" @click="processPayment" :disabled="!isFormValid || processing">
             <span v-if="!processing">Pay ₹{{ totalAmount }}</span>
             <span v-else>
               <i class="fas fa-spinner fa-spin"></i> Processing...
             </span>
           </button>
-          </router-link>
-          
           
           <div class="security-info">
             <i class="fas fa-lock"></i>
@@ -173,6 +171,8 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
+
 export default {
   data() {
     return {
@@ -199,92 +199,76 @@ export default {
       },
       acceptTerms: false,
       processing: false,
-      cartItems: [
-        // Sample data - replace with your actual cart items
-        {
-          id: 1,
-          title: 'Cardio Vax',
-          price: 499,
-          image: 'https://m.media-amazon.com/images/I/41-hbfs6TIL._SX300_SY300_QL70_FMwebp_.jpg',
-          quantity: 2
-        },
-        {
-          id: 2,
-          title: 'NeuroCalm Tablets',
-          price: 299,
-          image: 'https://www.apotekasrbotrade.rs/imgProducts/9793/neurocalm-30-tableta-srbotrade.jpg',
-          quantity: 1
-        }
-      ],
       shipping: 0,
       gstRate: 18
     }
   },
   computed: {
+    ...mapState(['cartItems']),
     subtotal() {
-      return this.cartItems.reduce((total, item) => total + (item.price * item.quantity), 0)
+      return this.cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
     },
     gstAmount() {
-      return (this.subtotal * this.gstRate) / 100
+      return (this.subtotal * this.gstRate) / 100;
     },
     totalAmount() {
-      return (this.subtotal + this.gstAmount + this.shipping).toFixed(2)
+      return (this.subtotal + this.gstAmount + this.shipping).toFixed(2);
     },
     cardType() {
-      if (/^4/.test(this.cardDetails.number)) return 'visa'
-      if (/^5[1-5]/.test(this.cardDetails.number)) return 'mastercard'
-      return ''
+      if (/^4/.test(this.cardDetails.number)) return 'visa';
+      if (/^5[1-5]/.test(this.cardDetails.number)) return 'mastercard';
+      return '';
     },
     isFormValid() {
-      if (!this.acceptTerms) return false
+      if (!this.acceptTerms) return false;
       
       if (this.selectedMethod === 'card') {
         return this.cardDetails.number && 
                this.cardDetails.expiry && 
                this.cardDetails.cvv && 
-               this.cardDetails.name
+               this.cardDetails.name;
       } else if (this.selectedMethod === 'upi') {
-        return this.upiDetails.id
+        return this.upiDetails.id;
       }
       
-      return false
+      return false;
     }
   },
   methods: {
     formatCardNumber(event) {
-      let value = event.target.value.replace(/\s+/g, '')
-      if (value.length > 16) value = value.substring(0, 16)
-      value = value.replace(/(\d{4})/g, '$1 ').trim()
-      this.cardDetails.number = value
+      let value = event.target.value.replace(/\s+/g, '');
+      if (value.length > 16) value = value.substring(0, 16);
+      value = value.replace(/(\d{4})/g, '$1 ').trim();
+      this.cardDetails.number = value;
     },
     formatExpiryDate(event) {
-      let value = event.target.value.replace(/\D/g, '')
-      if (value.length > 4) value = value.substring(0, 4)
+      let value = event.target.value.replace(/\D/g, '');
+      if (value.length > 4) value = value.substring(0, 4);
       if (value.length > 2) {
-        value = value.substring(0, 2) + '/' + value.substring(2)
+        value = value.substring(0, 2) + '/' + value.substring(2);
       }
-      this.cardDetails.expiry = value
+      this.cardDetails.expiry = value;
     },
     processPayment() {
-  this.processing = true;
-  // Create a clean items array with only necessary fields
-  const invoiceItems = this.cartItems.map(item => ({
-    id: item.id,
-    title: item.title,
-    price: item.price,
-    quantity: item.quantity
-  }));
-  
-  setTimeout(() => {
-    this.$router.push({
-      path: '/order-confirmation',
-      query: {
-        amount: this.totalAmount,
-        items: JSON.stringify(invoiceItems) // Stringify the simplified array
-      }
-    });
-  }, 2000);
-}
+      this.processing = true;
+      // Create a clean items array with only necessary fields
+      const invoiceItems = this.cartItems.map(item => ({
+        id: item.id,
+        title: item.title,
+        price: item.price,
+        quantity: item.quantity
+      }));
+      
+      setTimeout(() => {
+        this.$router.push({
+          path: '/order-confirmation',
+          query: {
+            amount: this.totalAmount,
+            items: JSON.stringify(invoiceItems)
+          }
+        });
+      }, 2000);
+    }
   }
 }
 </script>

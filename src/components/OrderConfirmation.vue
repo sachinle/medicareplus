@@ -9,7 +9,7 @@
               </div>
         <h1 class="confirmation-title">Payment Successful!</h1>
         <p class="confirmation-text">
-          Thank you for your order. Your payment of ₹{{ amount }} has been processed successfully.
+          Thank you for your order. Your payment of Rs {{ amount }} has been processed successfully.
         </p>
         <p class="confirmation-details">
           Order ID: #{{ orderId }}<br>
@@ -123,9 +123,9 @@ export default {
 
         doc.text(`${index + 1}`, 25, y);
         doc.text(title, 40, y);
-        doc.text(`₹${item.price ? item.price.toFixed(2) : '0.00'}`, 120, y, { align: 'right' });
+        doc.text(`Rs ${item.price ? item.price.toFixed(2) : '0.00'}`, 120, y, { align: 'right' });
         doc.text(`${item.quantity || 1}`, 150, y, { align: 'center' });
-        doc.text(`₹${itemTotal.toFixed(2)}`, 190, y, { align: 'right' });
+        doc.text(`Rs ${itemTotal.toFixed(2)}`, 190, y, { align: 'right' });
 
         y += 7;
       })
@@ -141,7 +141,7 @@ export default {
       const rightAlign = (label, value, lineY, bold = false) => {
         if (bold) doc.setFont(undefined, 'bold')
         doc.text(label, 150, lineY)
-        doc.text(`₹${value.toFixed(2)}`, 190, lineY, { align: 'right' })
+        doc.text(`Rs ${value.toFixed(2)}`, 190, lineY, { align: 'right' })
         if (bold) doc.setFont(undefined, 'normal')
       }
 
