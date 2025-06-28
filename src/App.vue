@@ -308,6 +308,7 @@ nav {
     height: 100vh;
     transition: left 0.3s ease;
     z-index: 100;
+    overflow-y: auto; /* Add scroll if content is too long */
   }
   
   nav.mobile-menu-open {
@@ -318,19 +319,27 @@ nav {
     flex-direction: column;
     padding: 1rem;
     height: 100%;
+    justify-content: flex-start; /* Align content to top */
   }
   
   .nav-links {
     flex-direction: column;
-    gap: 1rem;
-    margin-top: 2rem;
+    gap: 0.5rem; /* Reduced gap */
+    margin-top: 1rem; /* Reduced margin */
+    padding-bottom: 1rem; /* Add padding at bottom */
+    align-items: flex-start; /* Align links to left */
+    width: 100%;
   }
   
   .nav-links a, 
   .nav-links button {
-    padding: 0.75rem 0;
+    padding: 0.75rem 1rem; /* Added horizontal padding */
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     width: 100%;
+    text-align: left; /* Align text to left */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
   
   .nav-links a.router-link-exact-active::after {
@@ -340,11 +349,20 @@ nav {
   .nav-links a.router-link-exact-active {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 6px;
-    padding-left: 1rem;
   }
   
   .logo {
     justify-content: flex-start;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+  }
+
+  .sign-out-btn {
+    justify-content: flex-start;
+    margin-top: auto; /* Push sign out to bottom */
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
   }
 }
 
