@@ -439,4 +439,27 @@ export default {
     width: 100%;
   }
 }
+
+@media (max-width: 480px) {
+  .product-title {
+    font-size: 1.5rem;
+  }
+  
+  .current-price {
+    font-size: 1.5rem;
+  }
+  
+  .product-actions {
+    flex-direction: column;
+  }
+  
+  .add-to-cart-btn,
+  .buy-now-btn {
+    width: 100%;
+  }
+  
+  .quantity-selector {
+    margin-bottom: 1rem;
+  }
+}
 </style>

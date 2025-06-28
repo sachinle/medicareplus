@@ -941,4 +941,32 @@ export default {
     gap: 0.75rem;
   }
 }
+
+@media (max-width: 480px) {
+  .hero-content h1 {
+    font-size: 1.8rem;
+  }
+  
+  .product-actions {
+    flex-direction: column;
+  }
+  
+  .view-btn, 
+  .add-to-cart-btn {
+    width: 100%;
+  }
+  
+  .filters {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .filter-group {
+    width: 100%;
+  }
+  
+  .search-group {
+    max-width: 100%;
+  }
+}
 </style>

@@ -1,8 +1,20 @@
 <template>
   <div id="app">
-    <nav :class="{ 'nav-hidden': $route.path === '/login' }">
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" @click="toggleMobileMenu" v-if="showMobileMenuButton">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 12H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
+    <nav :class="{ 
+      'nav-hidden': $route.path === '/login',
+      'mobile-menu-open': isMobileMenuOpen 
+    }">
       <div class="nav-container">
-        <router-link to="/" class="logo">
+        <router-link to="/" class="logo" @click="closeMobileMenu">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -11,21 +23,19 @@
           <span>MediCare+</span>
         </router-link>
         <div class="nav-links">
-          <router-link to="/">Home</router-link>
-          <router-link to="/login" v-if="!isAuthenticated">Login</router-link>
-          <router-link to="/dashboard" v-if="isAuthenticated">Dashboard</router-link>
-          <!-- In App.vue -->
-<router-link to="/products" v-if="isAuthenticated">Products</router-link>
-          <!-- In App.vue -->
-<router-link to="/cart" v-if="isAuthenticated" class="cart-link">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M6 2L3 6V20C3 20.5304 3.21071 21.0391 3.58579 21.4142C3.96086 21.7893 4.46957 22 5 22H19C19.5304 22 20.0391 21.7893 20.4142 21.4142C20.7893 21.0391 21 20.5304 21 20V6L18 2H6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M16 10C16 11.0609 15.5786 12.0783 14.8284 12.8284C14.0783 13.5786 13.0609 14 12 14C10.9391 14 9.92172 13.5786 9.17157 12.8284C8.42143 12.0783 8 11.0609 8 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
-  <span class="cart-count" v-if="cartItemCount > 0">{{ cartItemCount }}</span>
-</router-link>
-          <button @click="signOut" v-if="isAuthenticated" class="sign-out-btn">
+          <router-link to="/" @click="closeMobileMenu">Home</router-link>
+          <router-link to="/login" v-if="!isAuthenticated" @click="closeMobileMenu">Login</router-link>
+          <router-link to="/dashboard" v-if="isAuthenticated" @click="closeMobileMenu">Dashboard</router-link>
+          <router-link to="/products" v-if="isAuthenticated" @click="closeMobileMenu">Products</router-link>
+          <router-link to="/cart" v-if="isAuthenticated" class="cart-link" @click="closeMobileMenu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 2L3 6V20C3 20.5304 3.21071 21.0391 3.58579 21.4142C3.96086 21.7893 4.46957 22 5 22H19C19.5304 22 20.0391 21.7893 20.4142 21.4142C20.7893 21.0391 21 20.5304 21 20V6L18 2H6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M16 10C16 11.0609 15.5786 12.0783 14.8284 12.8284C14.0783 13.5786 13.0609 14 12 14C10.9391 14 9.92172 13.5786 9.17157 12.8284C8.42143 12.0783 8 11.0609 8 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="cart-count" v-if="cartItemCount > 0">{{ cartItemCount }}</span>
+          </router-link>
+          <button @click="handleSignOut" v-if="isAuthenticated" class="sign-out-btn">
             Sign Out
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9M16 17L21 12M21 12L16 7M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -34,6 +44,11 @@
         </div>
       </div>
     </nav>
+    
+    <div class="mobile-menu-overlay" 
+         v-if="isMobileMenuOpen" 
+         @click="closeMobileMenu"></div>
+    
     <router-view/>
   </div>
 </template>
@@ -47,13 +62,18 @@ export default {
   name: 'App',
   data() {
     return {
-      isAuthenticated: false
+      isAuthenticated: false,
+      isMobileMenuOpen: false,
+      windowWidth: window.innerWidth
     }
   },
   computed: {
     ...mapState(['cartItems']),
     cartItemCount() {
       return this.cartItems.reduce((total, item) => total + item.quantity, 0);
+    },
+    showMobileMenuButton() {
+      return this.windowWidth < 768 && this.$route.path !== '/login';
     }
   },
   created() {
@@ -61,22 +81,40 @@ export default {
     auth.onAuthStateChanged(() => {
       this.checkAuth();
     });
+    window.addEventListener('resize', this.handleResize);
+  },
+  beforeUnmount() {
+    window.removeEventListener('resize', this.handleResize);
   },
   watch: {
     '$route'() {
       this.checkAuth();
+      this.closeMobileMenu();
     }
   },
   methods: {
     checkAuth() {
       this.isAuthenticated = !!localStorage.getItem('firebaseUser');
     },
-    async signOut() {
+    async handleSignOut() {
       try {
         await signOut(auth);
+        this.closeMobileMenu();
         this.$router.push('/');
       } catch (error) {
         console.error('Sign out error:', error);
+      }
+    },
+    toggleMobileMenu() {
+      this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    },
+    closeMobileMenu() {
+      this.isMobileMenuOpen = false;
+    },
+    handleResize() {
+      this.windowWidth = window.innerWidth;
+      if (this.windowWidth >= 768) {
+        this.closeMobileMenu();
       }
     }
   }
@@ -231,5 +269,93 @@ nav {
   justify-content: center;
   font-size: 0.65rem;
   font-weight: 600;
+}
+
+.mobile-menu-btn {
+  display: none;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  background: #6a1b9a;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem;
+  z-index: 101;
+  cursor: pointer;
+}
+
+.mobile-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: block;
+  }
+  
+  nav {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 280px;
+    height: 100vh;
+    transition: left 0.3s ease;
+    z-index: 100;
+  }
+  
+  nav.mobile-menu-open {
+    left: 0;
+  }
+  
+  .nav-container {
+    flex-direction: column;
+    padding: 1rem;
+    height: 100%;
+  }
+  
+  .nav-links {
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  
+  .nav-links a, 
+  .nav-links button {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+  }
+  
+  .nav-links a.router-link-exact-active::after {
+    display: none;
+  }
+  
+  .nav-links a.router-link-exact-active {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding-left: 1rem;
+  }
+  
+  .logo {
+    justify-content: flex-start;
+  }
+}
+
+/* Adjust content padding for mobile */
+#app {
+  padding-top: 70px;
+}
+
+@media (max-width: 768px) {
+  #app {
+    padding-top: 0;
+  }
 }
 </style>
