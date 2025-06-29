@@ -36,6 +36,17 @@
         </button>
       </form>
     </div>
+    
+    <!-- Mobile toggle buttons -->
+    <div class="mobile-toggle">
+      <button v-if="!isRegisterActive" @click="toggleForm(true)" class="mobile-toggle-btn">
+        Don't have an account? <span>Sign Up</span>
+      </button>
+      <button v-else @click="toggleForm(false)" class="mobile-toggle-btn">
+        Already have an account? <span>Sign In</span>
+      </button>
+    </div>
+
     <div class="toggle-container">
       <div class="toggle">
         <div class="toggle-panel toggle-left">
@@ -52,6 +63,7 @@
     </div>
   </div>
 </template>
+
 <script>
 import { registerUser, loginUser } from '../firebase/auth';
 
@@ -119,8 +131,8 @@ export default {
   }
 }
 </script>
+
 <style scoped>
-/* All the previous CSS styles remain the same */
 * {
     margin: 0;
     padding: 0;
@@ -145,7 +157,7 @@ body {
   position: relative;
   overflow: hidden;
   width: 768px;
-  max-width: 90%; /* Changed from 100% to 90% for better responsiveness */
+  max-width: 90%;
   min-height: 480px;
   margin: auto;
   position: absolute;
@@ -153,7 +165,6 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
 }
-
 
 .container p{
     font-size: 14px;
@@ -239,7 +250,7 @@ body {
 }
 
 .error-message {
-  position: absolute;
+  position: fixed;
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
@@ -247,9 +258,11 @@ body {
   color: white;
   padding: 10px 20px;
   border-radius: 5px;
-  z-index: 100;
-  max-width: 80%;
+  z-index: 1000;
+  max-width: 90%;
   text-align: center;
+  font-size: 14px;
+  word-wrap: break-word;
 }
 
 button:disabled {
@@ -360,5 +373,86 @@ button:disabled {
 
 .container.active .toggle-right{
     transform: translateX(200%);
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+  .container {
+    width: 95%;
+    min-height: 80vh;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .form-container {
+    width: 100% !important;
+    padding: 0 20px;
+  }
+
+  .sign-in {
+    left: 0;
+    width: 100% !important;
+    transform: translateX(0);
+  }
+
+  .container.active .sign-in {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+
+  .sign-up {
+    left: 0;
+    width: 100% !important;
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  .container.active .sign-up {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  .toggle-container {
+    display: none;
+  }
+
+  .mobile-toggle {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 10;
+  }
+
+  .mobile-toggle-btn {
+    background: transparent !important;
+    border: none !important;
+    color: #512da8 !important;
+    font-size: 14px !important;
+    text-transform: none !important;
+    padding: 5px !important;
+    margin: 0 !important;
+  }
+
+  .mobile-toggle-btn span {
+    font-weight: bold;
+    text-decoration: underline;
+  }
+
+  form {
+    padding: 0 20px !important;
+  }
+
+  input {
+    padding: 12px 15px !important;
+    font-size: 14px !important;
+  }
+
+  button[type="submit"] {
+    padding: 12px 30px !important;
+    font-size: 14px !important;
+  }
 }
 </style>
