@@ -368,7 +368,7 @@ nav {
 
 /* Adjust content padding for mobile */
 #app {
-  padding-top: 70px;
+  padding-top: 0px;
 }
 
 @media (max-width: 768px) {
