@@ -38,7 +38,7 @@
     </div>
     
     <!-- Mobile toggle buttons -->
-    <div class="mobile-toggle">
+     <div class="mobile-toggle">
       <button v-if="!isRegisterActive" @click="toggleForm(true)" class="mobile-toggle-btn">
         Don't have an account? <span>Sign Up</span>
       </button>
@@ -424,6 +424,7 @@ button:disabled {
     display: flex;
     justify-content: center;
     z-index: 10;
+     display: flex; /* Show on mobile */
   }
 
   .mobile-toggle-btn {
@@ -454,5 +455,13 @@ button:disabled {
     padding: 12px 30px !important;
     font-size: 14px !important;
   }
+  
+  
 }
+@media (min-width: 769px) {
+  .mobile-toggle {
+    display: none !important;
+  }
+}
+
 </style>
