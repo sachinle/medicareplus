@@ -23,10 +23,11 @@
           <span>MediCare+</span>
         </router-link>
         <div class="nav-links">
-          <router-link to="/" @click="closeMobileMenu">Home</router-link>
+         
           <router-link to="/login" v-if="!isAuthenticated" @click="closeMobileMenu">Login</router-link>
-          <router-link to="/dashboard" v-if="isAuthenticated" @click="closeMobileMenu">Dashboard</router-link>
+          <router-link to="/dashboard" v-if="isAuthenticated" @click="closeMobileMenu">Home</router-link>
           <router-link to="/products" v-if="isAuthenticated" @click="closeMobileMenu">Products</router-link>
+          
           <router-link to="/cart" v-if="isAuthenticated" class="cart-link" @click="closeMobileMenu">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M6 2L3 6V20C3 20.5304 3.21071 21.0391 3.58579 21.4142C3.96086 21.7893 4.46957 22 5 22H19C19.5304 22 20.0391 21.7893 20.4142 21.4142C20.7893 21.0391 21 20.5304 21 20V6L18 2H6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -180,9 +181,9 @@ nav {
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2rem; /* Increased gap between items */
+  margin-left: auto; /* Push items to the right */
 }
-
 .nav-links a {
   color: #e1e4eb;
   text-decoration: none;
@@ -191,6 +192,7 @@ nav {
   position: relative;
   padding: 0.5rem 0;
   transition: color 0.3s ease;
+  white-space: nowrap; /* Prevent text wrapping */
 }
 
 .nav-links a:hover {
@@ -224,6 +226,7 @@ nav {
   gap: 0.5rem;
   padding: 0.5rem 0;
   transition: color 0.3s ease;
+  margin-left: 1rem; /* Add space between cart and sign out */
 }
 
 .sign-out-btn:hover {
@@ -240,10 +243,10 @@ nav {
 
 /* In App.vue style section */
 .cart-link {
-  position: relative;
   display: flex;
   align-items: center;
-  padding: 0.5rem;
+  gap: 0.5rem;
+  position: relative;
 }
 
 .cart-link svg {

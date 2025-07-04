@@ -5,7 +5,9 @@
       <form @submit.prevent="handleSignUp">
         <h1>Create Account</h1>
         <div class="social-icons">
-          <a href="#" class="icon"><font-awesome-icon :icon="['fab', 'google']" /></a>
+          <a href="#" class="icon" @click.prevent="handleGoogleSignIn">
+            <font-awesome-icon :icon="['fab', 'google']" />
+          </a>
           <a href="#" class="icon"><font-awesome-icon :icon="['fab', 'facebook-f']" /></a>
           <a href="#" class="icon"><font-awesome-icon :icon="['fab', 'github']" /></a>
           <a href="#" class="icon"><font-awesome-icon :icon="['fab', 'linkedin-in']" /></a>
@@ -23,7 +25,9 @@
       <form @submit.prevent="handleSignIn">
         <h1>Sign In</h1>
         <div class="social-icons">
-          <a href="#" class="icon"><font-awesome-icon :icon="['fab', 'google']" /></a>
+          <a href="#" class="icon" @click.prevent="handleGoogleSignIn">
+            <font-awesome-icon :icon="['fab', 'google']" />
+          </a>
           <a href="#" class="icon"><font-awesome-icon :icon="['fab', 'facebook-f']" /></a>
           <a href="#" class="icon"><font-awesome-icon :icon="['fab', 'github']" /></a>
           <a href="#" class="icon"><font-awesome-icon :icon="['fab', 'linkedin-in']" /></a>
@@ -65,7 +69,7 @@
 </template>
 
 <script>
-import { registerUser, loginUser } from '../firebase/auth';
+import { registerUser, loginUser, signInWithGoogle } from '../firebase/auth';
 
 export default {
   name: 'AuthForm',
@@ -111,6 +115,20 @@ export default {
       
       const { name, email, password } = this.signUpForm;
       const result = await registerUser(email, password, name);
+      
+      if (result.success) {
+        this.$router.push('/dashboard');
+      } else {
+        this.errorMessage = this.getFirebaseError(result.error);
+      }
+      
+      this.isLoading = false;
+    },
+    async handleGoogleSignIn() {
+      this.isLoading = true;
+      this.errorMessage = '';
+      
+      const result = await signInWithGoogle();
       
       if (result.success) {
         this.$router.push('/dashboard');
