@@ -200,7 +200,18 @@ export default {
       acceptTerms: false,
       processing: false,
       shipping: 0,
-      gstRate: 18
+      gstRate: 18,
+      errors: {
+        card: {
+          number: '',
+          expiry: '',
+          cvv: '',
+          name: ''
+        },
+        upi: {
+          id: ''
+        }
+      }
     }
   },
   computed: {
@@ -215,32 +226,125 @@ export default {
       return (this.subtotal + this.gstAmount + this.shipping).toFixed(2);
     },
     cardType() {
-      if (/^4/.test(this.cardDetails.number)) return 'visa';
-      if (/^5[1-5]/.test(this.cardDetails.number)) return 'mastercard';
+      const num = this.cardDetails.number.replace(/\s+/g, '');
+      if (/^4/.test(num)) return 'visa';
+      if (/^5[1-5]/.test(num)) return 'mastercard';
       return '';
     },
     isFormValid() {
       if (!this.acceptTerms) return false;
       
       if (this.selectedMethod === 'card') {
-        return this.cardDetails.number && 
-               this.cardDetails.expiry && 
-               this.cardDetails.cvv && 
-               this.cardDetails.name;
+        return this.validateCardNumber() && 
+               this.validateExpiryDate() && 
+               this.validateCVV() && 
+               this.validateCardName();
       } else if (this.selectedMethod === 'upi') {
-        return this.upiDetails.id;
+        return this.validateUpiId();
       }
       
       return false;
     }
   },
   methods: {
+    validateCardNumber() {
+      const num = this.cardDetails.number.replace(/\s+/g, '');
+      // Basic length check
+      if (num.length < 13 || num.length > 19) {
+        this.errors.card.number = 'Invalid card number length';
+        return false;
+      }
+      
+      // Luhn algorithm validation
+      let sum = 0;
+      for (let i = 0; i < num.length; i++) {
+        let digit = parseInt(num[i]);
+        if ((num.length - i) % 2 === 0) {
+          digit *= 2;
+          if (digit > 9) digit -= 9;
+        }
+        sum += digit;
+      }
+      
+      if (sum % 10 !== 0) {
+        this.errors.card.number = 'Invalid card number';
+        return false;
+      }
+      
+      this.errors.card.number = '';
+      return true;
+    },
+    
+    validateExpiryDate() {
+      const [month, year] = this.cardDetails.expiry.split('/');
+      if (!month || !year || month.length !== 2 || year.length !== 2) {
+        this.errors.card.expiry = 'Invalid format (MM/YY)';
+        return false;
+      }
+      
+      const now = new Date();
+      const currentYear = now.getFullYear() % 100;
+      const currentMonth = now.getMonth() + 1;
+      
+      const expiryMonth = parseInt(month, 10);
+      const expiryYear = parseInt(year, 10);
+      
+      if (expiryMonth < 1 || expiryMonth > 12) {
+        this.errors.card.expiry = 'Invalid month';
+        return false;
+      }
+      
+      if (expiryYear < currentYear || 
+          (expiryYear === currentYear && expiryMonth < currentMonth)) {
+        this.errors.card.expiry = 'Card has expired';
+        return false;
+      }
+      
+      this.errors.card.expiry = '';
+      return true;
+    },
+    
+    validateCVV() {
+      const cvv = this.cardDetails.cvv;
+      const expectedLength = this.cardType === 'amex' ? 4 : 3;
+      
+      if (!cvv || cvv.length !== expectedLength || !/^\d+$/.test(cvv)) {
+        this.errors.card.cvv = `CVV must be ${expectedLength} digits`;
+        return false;
+      }
+      
+      this.errors.card.cvv = '';
+      return true;
+    },
+    
+    validateCardName() {
+      if (!this.cardDetails.name || this.cardDetails.name.trim().length < 3) {
+        this.errors.card.name = 'Please enter valid name';
+        return false;
+      }
+      this.errors.card.name = '';
+      return true;
+    },
+    
+    validateUpiId() {
+      const upiId = this.upiDetails.id;
+      // Basic UPI ID validation
+      if (!upiId || !/^[a-zA-Z0-9._-]+@[a-zA-Z0-9]+$/.test(upiId)) {
+        this.errors.upi.id = 'Please enter valid UPI ID';
+        return false;
+      }
+      this.errors.upi.id = '';
+      return true;
+    },
+    
     formatCardNumber(event) {
       let value = event.target.value.replace(/\s+/g, '');
       if (value.length > 16) value = value.substring(0, 16);
       value = value.replace(/(\d{4})/g, '$1 ').trim();
       this.cardDetails.number = value;
+      this.validateCardNumber();
     },
+    
     formatExpiryDate(event) {
       let value = event.target.value.replace(/\D/g, '');
       if (value.length > 4) value = value.substring(0, 4);
@@ -248,10 +352,13 @@ export default {
         value = value.substring(0, 2) + '/' + value.substring(2);
       }
       this.cardDetails.expiry = value;
+      this.validateExpiryDate();
     },
+    
     processPayment() {
+      if (!this.isFormValid) return;
+      
       this.processing = true;
-      // Create a clean items array with only necessary fields
       const invoiceItems = this.cartItems.map(item => ({
         id: item.id,
         title: item.title,
@@ -264,7 +371,8 @@ export default {
           path: '/order-confirmation',
           query: {
             amount: this.totalAmount,
-            items: JSON.stringify(invoiceItems)
+            items: JSON.stringify(invoiceItems),
+            method: this.selectedMethod
           }
         });
       }, 2000);
@@ -283,6 +391,7 @@ export default {
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  margin-top:50px;
   padding: 0 2rem;
 }
 

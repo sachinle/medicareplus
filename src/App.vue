@@ -20,7 +20,7 @@
             <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <span>MediCare+</span>
+          <span>Leo's MediCare+</span>
         </router-link>
         <div class="nav-links">
          
@@ -156,8 +156,9 @@ nav {
 }
 
 .nav-container {
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 1900px;
+  margin-left:12px;
+  
   padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;

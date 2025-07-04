@@ -611,6 +611,7 @@ export default {
   background-color: transparent;
   border: 1px solid #6a1b9a;
   color: #6a1b9a;
+  text-decoration:none;
 }
 
 .view-btn:hover {

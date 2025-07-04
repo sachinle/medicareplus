@@ -32,6 +32,7 @@
 
 <script>
 import { jsPDF } from 'jspdf';
+import { mapActions } from 'vuex';
 
 export default {
   data() {
@@ -50,6 +51,9 @@ export default {
     }
   },
   created() {
+    // Clear the cart when this page is loaded
+    this.clearCart();
+    
     // Parse the items from route query
     if (this.$route.query.items) {
       try {
@@ -61,6 +65,7 @@ export default {
     }
   },
   methods: {
+    ...mapActions(['clearCart']), // Add this to map the clearCart action
     generateOrderId() {
       return 'ORD-' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
     },

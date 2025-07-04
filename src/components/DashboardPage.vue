@@ -33,11 +33,7 @@
               <div class="product-image" :style="{ backgroundImage: `url(${product.image})` }"></div>
               <h3>{{ product.name }}</h3>
               <p>{{ product.description }}</p>
-              <div class="product-rating" v-if="product.rating">
-                <span v-for="star in 5" :key="star" 
-                      :class="['star', star <= product.rating ? 'filled' : '']">★</span>
-                <span class="rating-count">({{ product.reviews }})</span>
-              </div>
+              
               <router-link to="/products" class="product-button">View Details</router-link>
             </div>
           </div>
@@ -175,7 +171,7 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <p>&copy; {{ new Date().getFullYear() }} MediCare+. All rights reserved.</p>
+        <p>&copy; {{ new Date().getFullYear() }} MediCare+. All rights reserved to Sachin Leo.</p>
         <div class="footer-payment-methods">
           <i class="fab fa-cc-visa"></i>
           <i class="fab fa-cc-mastercard"></i>
@@ -695,7 +691,7 @@ export default {
   background-position: center;
   background-repeat: no-repeat;
   margin-bottom: 1.5rem;
-  background-color: #f8f9fa;
+  background-color: #ffffff;
   border-radius: 10px;
   transition: transform 0.3s ease;
 }
@@ -1201,6 +1197,7 @@ export default {
 .social-links {
   display: flex;
   gap: 1rem;
+  
 }
 
 .social-icon {
@@ -1213,6 +1210,7 @@ export default {
   background-color: rgba(255, 255, 255, 0.1);
   color: white;
   transition: all 0.3s ease;
+  text-decoration:none;
 }
 
 .social-icon:hover {

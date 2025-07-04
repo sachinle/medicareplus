@@ -13,8 +13,6 @@ export default createStore({
       } else {
         state.cartItems.push({ ...product, quantity: 1 });
       }
-
-      
     },
     REMOVE_FROM_CART(state, product) {
       state.cartItems = state.cartItems.filter(item => item.id !== product.id);
@@ -26,8 +24,8 @@ export default createStore({
       }
     },
     CLEAR_CART(state) {
-    state.cartItems = [];
-  }
+      state.cartItems = [];
+    }
   },
   actions: {
     addItemToCart({ commit }, product) {
@@ -38,6 +36,9 @@ export default createStore({
     },
     updateItemQuantity({ commit }, payload) {
       commit('UPDATE_QUANTITY', payload);
+    },
+    clearCart({ commit }) {  // Add this action
+      commit('CLEAR_CART');
     }
   }
 });
