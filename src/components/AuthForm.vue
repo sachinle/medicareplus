@@ -5,12 +5,10 @@
       <form @submit.prevent="handleSignUp">
         <h1>Create Account</h1>
         <div class="social-icons">
-          <a href="#" class="icon" @click.prevent="handleGoogleSignIn">
-            <font-awesome-icon :icon="['fab', 'google']" />
-          </a>
-          <a href="#" class="icon"><font-awesome-icon :icon="['fab', 'facebook-f']" /></a>
-          <a href="#" class="icon"><font-awesome-icon :icon="['fab', 'github']" /></a>
-          <a href="#" class="icon"><font-awesome-icon :icon="['fab', 'linkedin-in']" /></a>
+          <a href="#" class="icon google-icon" @click.prevent="handleGoogleSignIn">
+  <font-awesome-icon :icon="['fab', 'google']" /> Continue With Google
+</a>
+          
         </div>
         <span>or use your email for registeration</span>
         <input type="text" placeholder="Name" v-model="signUpForm.name" required>
@@ -25,12 +23,10 @@
       <form @submit.prevent="handleSignIn">
         <h1>Sign In</h1>
         <div class="social-icons">
-          <a href="#" class="icon" @click.prevent="handleGoogleSignIn">
-            <font-awesome-icon :icon="['fab', 'google']" />
-          </a>
-          <a href="#" class="icon"><font-awesome-icon :icon="['fab', 'facebook-f']" /></a>
-          <a href="#" class="icon"><font-awesome-icon :icon="['fab', 'github']" /></a>
-          <a href="#" class="icon"><font-awesome-icon :icon="['fab', 'linkedin-in']" /></a>
+          <a href="#" class="icon google-icon" @click.prevent="handleGoogleSignIn">
+  <font-awesome-icon :icon="['fab', 'google']" /> Continue With Google
+</a>
+         
         </div>
         <span>or use your email password</span>
         <input type="email" placeholder="Email" v-model="signInForm.email" required>
@@ -320,12 +316,20 @@ button:disabled {
     width: 40px;
     height: 40px;
     transition: all 0.5s;
+    display: flex; /* Added to align icon and text */
+    align-items: center; /* Added to align icon and text */
+    gap: 5px; /* Added for spacing between icon and text */
+    border-radius: 8px; /* Changed from 20% to 8px for a softer look */
+    width: auto; /* Allow width to adjust based on content */
+    padding: 10px 15px; /* Add padding to the button */
 }
 
 .social-icons a:hover{
     scale: 1.3;
     border: 1px solid #000;
 }
+
+
 
 .toggle-container{
     position: absolute;
