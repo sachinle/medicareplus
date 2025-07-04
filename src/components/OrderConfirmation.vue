@@ -19,9 +19,7 @@
           <router-link to="/products" class="btn continue-btn">
             Continue Shopping
           </router-link>
-          <router-link to="/orders" class="btn orders-btn">
-            View Your Orders
-          </router-link>
+          
           <button @click="downloadInvoice" class="btn invoice-btn">
             <i class="fas fa-download"></i> Download Invoice
           </button>
@@ -251,16 +249,7 @@ export default {
   transform: translateY(-2px);
 }
 
-.orders-btn {
-  background: white;
-  color: #6a1b9a;
-  border: 1px solid #6a1b9a;
-}
 
-.orders-btn:hover {
-  background: #f5f3ff;
-  transform: translateY(-2px);
-}
 
 .invoice-btn {
   background: #10b981;

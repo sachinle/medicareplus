@@ -74,6 +74,7 @@ const routes = [
       requiresAuth: true,
       title: 'MediCare+ - Order Confirmation'
     },
+    
     props: (route) => ({ 
       amount: route.query.amount,
       items: route.query.items ? JSON.parse(route.query.items) : []

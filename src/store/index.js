@@ -13,6 +13,8 @@ export default createStore({
       } else {
         state.cartItems.push({ ...product, quantity: 1 });
       }
+
+      
     },
     REMOVE_FROM_CART(state, product) {
       state.cartItems = state.cartItems.filter(item => item.id !== product.id);
@@ -22,7 +24,10 @@ export default createStore({
       if (cartItem) {
         cartItem.quantity = newQuantity;
       }
-    }
+    },
+    CLEAR_CART(state) {
+    state.cartItems = [];
+  }
   },
   actions: {
     addItemToCart({ commit }, product) {
