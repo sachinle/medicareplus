@@ -42,39 +42,52 @@
           <div v-if="selectedMethod === 'card'" class="card-form">
             <h3>Card Details</h3>
             <div class="form-group">
-              <label>Card Number</label>
-              <div class="input-with-icon">
-                <input type="text" 
-                       placeholder="1234 5678 9012 3456"
-                       v-model="cardDetails.number"
-                       @input="formatCardNumber">
-                <span class="card-type">
-                  <i class="fab fa-cc-visa" v-if="cardType === 'visa'"></i>
-                  <i class="fab fa-cc-mastercard" v-else-if="cardType === 'mastercard'"></i>
-                  <i class="far fa-credit-card" v-else></i>
-                </span>
-              </div>
-            </div>
+  <label>Card Number</label>
+  <div class="input-with-icon">
+    <input type="text" 
+           placeholder="1234 5678 9012 3456"
+           v-model="cardDetails.number"
+           @input="formatCardNumber"
+           :class="{ 'error': errors.card.number }">
+    <span class="card-type">
+      <i class="fab fa-cc-visa" v-if="cardType === 'visa'"></i>
+      <i class="fab fa-cc-mastercard" v-else-if="cardType === 'mastercard'"></i>
+      <i class="fab fa-cc-amex" v-else-if="cardType === 'amex'"></i>
+      <i class="far fa-credit-card" v-else></i>
+    </span>
+  </div>
+  <div class="error-message" v-if="errors.card.number">{{ errors.card.number }}</div>
+</div>
             
             <div class="form-row">
               <div class="form-group">
-                <label>Expiry Date</label>
-                <input type="text" 
-                       placeholder="MM/YY"
-                       v-model="cardDetails.expiry"
-                       @input="formatExpiryDate">
-              </div>
+  <label>Expiry Date</label>
+  <input type="text" 
+         placeholder="MM/YY"
+         v-model="cardDetails.expiry"
+         @input="formatExpiryDate"
+         :class="{ 'error': errors.card.expiry }">
+  <div class="error-message" v-if="errors.card.expiry">
+    {{ errors.card.expiry }}
+  </div>
+</div>
               <div class="form-group">
-                <label>CVV</label>
-                <div class="input-with-icon">
-                  <input type="password" 
-                         placeholder="123"
-                         v-model="cardDetails.cvv">
-                  <span class="info-icon" title="3-digit code on back of card">
-                    <i class="fas fa-question-circle"></i>
-                  </span>
-                </div>
-              </div>
+  <label>CVV</label>
+  <div class="input-with-icon">
+    <input type="password" 
+           placeholder="123"
+           v-model="cardDetails.cvv"
+           @input="validateCVV"
+           maxlength="4"
+           :class="{ 'error': errors.card.cvv }">
+    <span class="info-icon" :title="cardType === 'amex' ? '4-digit code on front of card' : '3-digit code on back of card'">
+      <i class="fas fa-question-circle"></i>
+    </span>
+  </div>
+  <div class="error-message" v-if="errors.card.cvv">
+    {{ errors.card.cvv }}
+  </div>
+</div>
             </div>
             
             <div class="form-group">
@@ -229,18 +242,19 @@ export default {
       const num = this.cardDetails.number.replace(/\s+/g, '');
       if (/^4/.test(num)) return 'visa';
       if (/^5[1-5]/.test(num)) return 'mastercard';
+      if (/^3[47]/.test(num)) return 'amex';
       return '';
     },
     isFormValid() {
       if (!this.acceptTerms) return false;
       
       if (this.selectedMethod === 'card') {
-        return this.validateCardNumber() && 
-               this.validateExpiryDate() && 
-               this.validateCVV() && 
-               this.validateCardName();
+        return this.cardDetails.number.length >= 13 && 
+               this.cardDetails.expiry.length === 5 &&
+               this.cardDetails.cvv.length >= 3 &&
+               this.cardDetails.name.length >= 3;
       } else if (this.selectedMethod === 'upi') {
-        return this.validateUpiId();
+        return this.upiDetails.id.includes('@');
       }
       
       return false;
@@ -249,25 +263,14 @@ export default {
   methods: {
     validateCardNumber() {
       const num = this.cardDetails.number.replace(/\s+/g, '');
-      // Basic length check
       if (num.length < 13 || num.length > 19) {
-        this.errors.card.number = 'Invalid card number length';
+        this.errors.card.number = 'Card number must be 13-19 digits';
         return false;
       }
       
-      // Luhn algorithm validation
-      let sum = 0;
-      for (let i = 0; i < num.length; i++) {
-        let digit = parseInt(num[i]);
-        if ((num.length - i) % 2 === 0) {
-          digit *= 2;
-          if (digit > 9) digit -= 9;
-        }
-        sum += digit;
-      }
-      
-      if (sum % 10 !== 0) {
-        this.errors.card.number = 'Invalid card number';
+      // Simple validation - in production use a proper library
+      if (!/^\d+$/.test(num)) {
+        this.errors.card.number = 'Only digits allowed';
         return false;
       }
       
@@ -276,50 +279,71 @@ export default {
     },
     
     validateExpiryDate() {
-      const [month, year] = this.cardDetails.expiry.split('/');
-      if (!month || !year || month.length !== 2 || year.length !== 2) {
-        this.errors.card.expiry = 'Invalid format (MM/YY)';
-        return false;
-      }
-      
-      const now = new Date();
-      const currentYear = now.getFullYear() % 100;
-      const currentMonth = now.getMonth() + 1;
-      
-      const expiryMonth = parseInt(month, 10);
-      const expiryYear = parseInt(year, 10);
-      
-      if (expiryMonth < 1 || expiryMonth > 12) {
-        this.errors.card.expiry = 'Invalid month';
-        return false;
-      }
-      
-      if (expiryYear < currentYear || 
-          (expiryYear === currentYear && expiryMonth < currentMonth)) {
-        this.errors.card.expiry = 'Card has expired';
-        return false;
-      }
-      
-      this.errors.card.expiry = '';
-      return true;
-    },
+  const expiry = this.cardDetails.expiry;
+  
+  // Basic format check
+  if (!/^\d{2}\/\d{2}$/.test(expiry)) {
+    this.errors.card.expiry = 'Use MM/YY format';
+    return false;
+  }
+
+  const [month, year] = expiry.split('/');
+  const currentYear = new Date().getFullYear() % 100;
+  const currentMonth = new Date().getMonth() + 1;
+  
+  // Month validation
+  if (month < 1 || month > 12) {
+    this.errors.card.expiry = 'Invalid month (01-12)';
+    return false;
+  }
+  
+  // Year validation
+  const expiryYear = parseInt(year, 10);
+  const expiryMonth = parseInt(month, 10);
+  
+  if (expiryYear < currentYear || 
+      (expiryYear === currentYear && expiryMonth < currentMonth)) {
+    this.errors.card.expiry = 'Card expired or invalid date';
+    return false;
+  }
+
+  this.errors.card.expiry = '';
+  return true;
+},
     
     validateCVV() {
-      const cvv = this.cardDetails.cvv;
-      const expectedLength = this.cardType === 'amex' ? 4 : 3;
-      
-      if (!cvv || cvv.length !== expectedLength || !/^\d+$/.test(cvv)) {
-        this.errors.card.cvv = `CVV must be ${expectedLength} digits`;
-        return false;
-      }
-      
-      this.errors.card.cvv = '';
-      return true;
-    },
+  const cvv = this.cardDetails.cvv;
+  // Remove any non-digit characters
+  const cleanCVV = cvv.replace(/\D/g, '');
+  
+  // Limit CVV length to 3-4 digits
+  if (cleanCVV.length > 4) {
+    this.cardDetails.cvv = cleanCVV.slice(0, 4);
+    return false;
+  }
+
+  // Check for valid length based on card type
+  const expectedLength = this.cardType === 'amex' ? 4 : 3;
+  
+  if (cleanCVV.length !== expectedLength) {
+    this.errors.card.cvv = this.cardType === 'amex' 
+      ? 'American Express requires 4-digit CVV' 
+      : 'CVV must be 3 digits';
+    return false;
+  }
+
+  if (!/^\d+$/.test(cleanCVV)) {
+    this.errors.card.cvv = 'Only digits allowed';
+    return false;
+  }
+
+  this.errors.card.cvv = '';
+  return true;
+},
     
     validateCardName() {
-      if (!this.cardDetails.name || this.cardDetails.name.trim().length < 3) {
-        this.errors.card.name = 'Please enter valid name';
+      if (this.cardDetails.name.trim().length < 3) {
+        this.errors.card.name = 'Name too short';
         return false;
       }
       this.errors.card.name = '';
@@ -327,10 +351,8 @@ export default {
     },
     
     validateUpiId() {
-      const upiId = this.upiDetails.id;
-      // Basic UPI ID validation
-      if (!upiId || !/^[a-zA-Z0-9._-]+@[a-zA-Z0-9]+$/.test(upiId)) {
-        this.errors.upi.id = 'Please enter valid UPI ID';
+      if (!this.upiDetails.id.includes('@')) {
+        this.errors.upi.id = 'Invalid UPI ID';
         return false;
       }
       this.errors.upi.id = '';
@@ -354,9 +376,33 @@ export default {
       this.cardDetails.expiry = value;
       this.validateExpiryDate();
     },
+    formatCVV(event) {
+  // Remove non-digit characters
+  let value = event.target.value.replace(/\D/g, '');
+  
+  // Limit to 4 characters max
+  if (value.length > 4) {
+    value = value.slice(0, 4);
+  }
+  
+  this.cardDetails.cvv = value;
+  this.validateCVV();
+},
     
     processPayment() {
-      if (!this.isFormValid) return;
+      // Final validation before processing
+      if (this.selectedMethod === 'card') {
+        if (!this.validateCardNumber() || 
+            !this.validateExpiryDate() || 
+            !this.validateCVV() || 
+            !this.validateCardName()) {
+          return;
+        }
+      } else if (this.selectedMethod === 'upi') {
+        if (!this.validateUpiId()) return;
+      }
+      
+      if (!this.acceptTerms) return;
       
       this.processing = true;
       const invoiceItems = this.cartItems.map(item => ({
@@ -570,6 +616,27 @@ export default {
   top: 50%;
   transform: translateY(-50%);
   color: #64748b;
+}
+
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+.form-group input.error {
+  border-color: #ef4444;
+  background-color: #fff5f5;
+}
+
+.info-icon {
+  color: #6b7280;
+  cursor: help;
+}
+
+.form-group input.error {
+  border-color: #ef4444;
 }
 
 .info-icon {
