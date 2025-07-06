@@ -292,12 +292,17 @@
       </div>
     </div>
   </div>
+  <AIChatbot :currentProduct="product" />
 </template>
 
 <script>
 import { mapActions } from 'vuex';
+import AIChatbot from './AIChatbot.vue';
 
 export default {
+  components: {
+    AIChatbot
+  },
   name: 'ProductView',
   data() {
     return {

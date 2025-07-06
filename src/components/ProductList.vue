@@ -139,12 +139,17 @@
     </div>
     
      </div>
+     <AIChatbot />
 </template>
 
 <script>
 import { mapState, mapActions } from 'vuex';
-
+import AIChatbot from './AIChatbot.vue';
 export default {
+
+  components: {
+    AIChatbot
+  },
   name: 'ProductList',
   data() {
     return {

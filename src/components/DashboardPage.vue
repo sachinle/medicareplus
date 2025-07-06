@@ -181,10 +181,15 @@
       </div>
     </footer>
   </div>
+  <AIChatbot />
 </template>
 
 <script>
+import AIChatbot from './AIChatbot.vue';
 export default {
+  components: {
+    AIChatbot
+  },
   data() {
     return {
       userName: '',
