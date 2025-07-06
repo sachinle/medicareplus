@@ -37,7 +37,7 @@ export default createStore({
     updateItemQuantity({ commit }, payload) {
       commit('UPDATE_QUANTITY', payload);
     },
-    clearCart({ commit }) {  // Add this action
+    clearCart({ commit }) {  
       commit('CLEAR_CART');
     }
   }

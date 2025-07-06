@@ -1,5 +1,4 @@
 <template>
-  <!-- Template remains exactly the same -->
   <div class="home">
     <div ref="canvasContainer" class="canvas-container"></div>
     <div class="content">
@@ -212,7 +211,7 @@ export default {
 </script>
 
 <style scoped>
-/* All your existing CSS remains exactly the same */
+
 .home {
   position: relative;
   height: 100vh;

@@ -460,7 +460,7 @@ export default {
         ...this.product,
         quantity: this.quantity
       });
-      // No toast notification - just silently add to cart
+     
     },
     buyNow() {
       this.addToCart(); // Add to cart first

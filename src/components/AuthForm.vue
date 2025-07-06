@@ -316,12 +316,12 @@ button:disabled {
     width: 40px;
     height: 40px;
     transition: all 0.5s;
-    display: flex; /* Added to align icon and text */
-    align-items: center; /* Added to align icon and text */
-    gap: 5px; /* Added for spacing between icon and text */
-    border-radius: 8px; /* Changed from 20% to 8px for a softer look */
-    width: auto; /* Allow width to adjust based on content */
-    padding: 10px 15px; /* Add padding to the button */
+    display: flex; 
+    align-items: center; 
+    gap: 5px; 
+    border-radius: 8px; 
+    width: auto; 
+    padding: 10px 15px; 
 }
 
 .social-icons a:hover{

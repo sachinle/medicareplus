@@ -448,7 +448,7 @@ export default {
 </script>
 
 <style scoped>
-/* Your existing styles remain exactly the same */
+
 .ai-chatbot-container {
   position: fixed;
   bottom: 2rem;
@@ -786,4 +786,4 @@ export default {
     right: 1rem;
   }
 }
-</style>
+</style>``
