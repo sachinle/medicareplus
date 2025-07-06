@@ -118,8 +118,7 @@ export default {
       ],
       isTyping: false,
       products: [],
-      isLoading: false,
-      apiEndpoint: process.env.VUE_APP_OPENAI_ENDPOINT || 'https://api.openai.com/v1/chat/completions'
+      isLoading: false
     };
   },
   async created() {
@@ -166,174 +165,76 @@ export default {
         this.scrollToBottom();
       });
 
-      try {
-        // First try to answer from local knowledge
-        const localResponse = this.handleDirectQuestions(userQuestion) || 
-                             this.handleProductSpecificQuestion(userQuestion);
-        
-        if (localResponse) {
+      // Simulate typing delay
+      setTimeout(() => {
+        try {
+          const response = this.generateLocalResponse(userQuestion);
           this.messages.push({
             type: 'bot',
-            text: typeof localResponse === 'string' ? localResponse : localResponse.text,
-            products: typeof localResponse === 'object' ? localResponse.products : []
+            text: typeof response === 'string' ? response : response.text,
+            products: typeof response === 'object' ? response.products : []
           });
-          return;
+        } catch (error) {
+          console.error('Error generating response:', error);
+          this.showErrorFallback(userQuestion);
+        } finally {
+          this.isLoading = false;
+          this.isTyping = false;
+          this.$nextTick(() => {
+            this.scrollToBottom();
+          });
         }
-
-        // Only call OpenAI if we can't answer locally
-        if (process.env.VUE_APP_OPENAI_API_KEY) {
-          await this.generateResponse(userQuestion);
-        } else {
-          throw new Error('API key not configured');
-        }
-      } catch (error) {
-        console.error('Error generating response:', error);
-        this.showErrorFallback(userQuestion);
-      } finally {
-        this.isLoading = false;
-        this.isTyping = false;
-        this.$nextTick(() => {
-          this.scrollToBottom();
-        });
-      }
+      }, 800); // Simulate typing delay
     },
-    async generateResponse(question) {
+    generateLocalResponse(question) {
       // First check if it's a product-specific question
       if (this.currentProduct) {
         const productResponse = this.handleProductSpecificQuestion(question);
-        if (productResponse) {
-          this.messages.push({
-            type: 'bot',
-            text: productResponse,
-            products: []
-          });
-          return;
-        }
+        if (productResponse) return productResponse;
       }
 
-      // Check if it's a general question we can handle directly
+      // Check for direct questions
       const directResponse = this.handleDirectQuestions(question);
-      if (directResponse) {
-        this.messages.push({
-          type: 'bot',
-          text: directResponse.text,
-          products: directResponse.products
-        });
-        return;
+      if (directResponse) return directResponse;
+
+      // If we don't understand the question, show help
+      return this.showHelpResponse(question);
+    },
+    showHelpResponse(question) {
+      const lowerQuestion = question.toLowerCase();
+      
+      // Try to find similar questions
+      if (lowerQuestion.includes('product') || lowerQuestion.includes('item')) {
+        return {
+          text: 'Here are some of our popular healthcare products:',
+          products: this.getRandomProducts(5)
+        };
+      }
+      
+      if (lowerQuestion.includes('help') || lowerQuestion.includes('support')) {
+        return {
+          text: 'I can help with information about our products, services, and general healthcare topics. ' +
+                'Try asking about specific products, prices, or recommendations based on your needs.',
+          products: []
+        };
       }
 
-      // For other questions, use OpenAI API
-      const response = await this.callOpenAI(question);
-      const mentionedProducts = this.extractProductMentions(response);
-      
-      this.messages.push({
-        type: 'bot',
-        text: response,
-        products: mentionedProducts
-      });
-    },
-    async callOpenAI(question) {
-      const prompt = this.createPrompt(question);
-      
-      try {
-        const response = await fetch(this.apiEndpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.VUE_APP_OPENAI_API_KEY}`
-          },
-          body: JSON.stringify({
-            model: "gpt-3.5-turbo",
-            messages: [
-              {
-                role: "system",
-                content: "You are Leo, an AI assistant for MediCare+ healthcare products. Provide concise, accurate information about products and related health topics only."
-              },
-              {
-                role: "user",
-                content: prompt
-              }
-            ],
-            temperature: 0.7,
-            max_tokens: 300
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error(`API request failed with status ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data.choices[0]?.message?.content || "I couldn't generate a response. Please try again.";
-      } catch (error) {
-        console.error('API call failed:', error);
-        throw error;
-      }
-    },
-    createPrompt(question) {
-      const productContext = this.currentProduct ? 
-        `Current product context: ${this.currentProduct.title} - ${this.currentProduct.description}. ` : '';
-      
-      const productsList = this.products.slice(0, 10).map(p => ({
-        id: p.id,
-        title: p.title,
-        price: p.price,
-        description: p.description.substring(0, 100),
-        category: p.category
-      }));
-
-      return `
-        You are Leo, the AI assistant for MediCare+, a healthcare products company. 
-        Your role is to provide helpful information ONLY about MediCare+ products and related healthcare advice.
-        
-        ${productContext}
-        
-        Available products information: ${JSON.stringify(productsList)}
-        
-        Guidelines:
-        1. Only answer questions related to healthcare products, medicines, and general health tips relevant to our products
-        2. For product questions, provide accurate information based on the product details
-        3. For health advice, keep it general and recommend consulting a doctor
-        4. If asked about non-healthcare topics, politely decline and refocus on healthcare products
-        5. For product recommendations, suggest specific MediCare+ products when relevant
-        6. Keep responses concise and professional
-        7. Always respond in a helpful, friendly tone
-        8. If unsure about medical advice, recommend consulting a healthcare professional
-        
-        User question: ${question}
-        
-        Please provide a helpful response following these guidelines.
-      `;
-    },
-    showErrorFallback(question) {
-      // First try to answer with local knowledge
-      const localResponse = this.handleDirectQuestions(question) || 
-                           this.handleProductSpecificQuestion(question);
-      
-      if (localResponse) {
-        this.messages.push({
-          type: 'bot',
-          text: typeof localResponse === 'string' ? localResponse : localResponse.text,
-          products: typeof localResponse === 'object' ? localResponse.products : []
-        });
-        return;
-      }
-
-      // If we can't answer locally, show a more helpful message
-      this.messages.push({
-        type: 'bot',
-        text: "I can answer questions about our products, services, and general healthcare topics. " +
-              "Here are some things you can ask me:<br><br>" +
+      // Default help response
+      return {
+        text: "I'm here to help with MediCare+ products and services. Here are some things you can ask me:<br><br>" +
               "- Tell me about [product name]<br>" +
               "- What's the price of [product]<br>" +
               "- Recommend products for [health concern]<br>" +
               "- What are your delivery options?<br>" +
-              "- How do I contact support?",
-        products: this.products.slice(0, 3) // Show some sample products
-      });
+              "- How do I contact support?<br><br>" +
+              "For medical advice, please consult a healthcare professional.",
+        products: this.getRandomProducts(3)
+      };
     },
     handleProductSpecificQuestion(question) {
       const lowerQuestion = question.toLowerCase();
+      
+      if (!this.currentProduct) return null;
       
       if (lowerQuestion.includes('what is') || lowerQuestion.includes('tell me about')) {
         return `This is our <strong>${this.currentProduct.title}</strong>. ${this.currentProduct.description}`;
@@ -350,6 +251,12 @@ export default {
       else if (lowerQuestion.includes('side effect') || lowerQuestion.includes('risk')) {
         return this.generateSafetyInfo();
       }
+      else if (lowerQuestion.includes('similar') || lowerQuestion.includes('alternative')) {
+        return {
+          text: `Here are some products similar to <strong>${this.currentProduct.title}</strong>:`,
+          products: this.getSimilarProducts(this.currentProduct, 3)
+        };
+      }
       
       return null;
     },
@@ -360,11 +267,13 @@ export default {
         response += 'Take 1-2 capsules daily with water, or as directed by your physician.';
       } else if (this.currentProduct.category.includes('equipment')) {
         response += 'Please refer to the user manual for proper usage instructions.';
+      } else if (this.currentProduct.category.includes('supplement')) {
+        response += 'Take 1 tablet daily with meals, or as directed by your healthcare provider.';
       } else {
         response += 'Follow the instructions on the product packaging.';
       }
       
-      return response;
+      return response + ' For personalized advice, please consult your doctor.';
     },
     generateBenefits() {
       let response = `<strong>${this.currentProduct.title}</strong> can help with: `;
@@ -375,6 +284,10 @@ export default {
         response += 'boosting immunity and overall health.';
       } else if (this.currentProduct.category.includes('skin')) {
         response += 'improving skin health and appearance.';
+      } else if (this.currentProduct.category.includes('digest')) {
+        response += 'supporting digestive health and gut function.';
+      } else if (this.currentProduct.category.includes('heart')) {
+        response += 'supporting cardiovascular health.';
       } else {
         response += 'various health benefits as described in the product details.';
       }
@@ -382,8 +295,15 @@ export default {
       return response;
     },
     generateSafetyInfo() {
-      return `<strong>${this.currentProduct.title}</strong> is generally safe when used as directed. ` +
-        'Some users may experience mild side effects. Consult your doctor if you have any concerns.';
+      let response = `<strong>${this.currentProduct.title}</strong> is generally safe when used as directed. `;
+      
+      if (this.currentProduct.category.includes('pharma') || this.currentProduct.category.includes('medicine')) {
+        response += 'Some users may experience mild side effects like nausea or dizziness. ';
+      } else if (this.currentProduct.category.includes('supplement')) {
+        response += 'Dietary supplements may cause reactions in some individuals. ';
+      }
+      
+      return response + 'Consult your doctor if you have any concerns or experience adverse effects.';
     },
     handleDirectQuestions(question) {
       const lowerQuestion = question.toLowerCase();
@@ -399,66 +319,114 @@ export default {
       }
       else if (lowerQuestion.includes('delivery') || lowerQuestion.includes('shipping')) {
         return {
-          text: 'We offer standard delivery within 3-5 business days and express delivery within 2 hours (with additional fee).',
+          text: 'We offer several delivery options:<br>' +
+                '- Standard delivery: 3-5 business days (FREE for orders over ₹500)<br>' +
+                '- Express delivery: Next business day (₹100)<br>' +
+                '- Priority delivery: Same day (₹200, order before 2pm)<br><br>' +
+                'Delivery times may vary based on location and product availability.',
           products: []
         };
       }
       else if (lowerQuestion.includes('return') || lowerQuestion.includes('refund')) {
         return {
-          text: 'We have a 30-day return policy for unopened products with original packaging. Please contact our support for returns.',
+          text: 'Our return policy:<br>' +
+                '- 30-day return window for unopened products with original packaging<br>' +
+                '- Refunds processed within 5-7 business days<br>' +
+                '- For defective products, please contact support@medicareplus.com<br><br>' +
+                'Note: Prescription medications and personal care items cannot be returned.',
           products: []
         };
       }
       else if (lowerQuestion.includes('contact') || lowerQuestion.includes('support')) {
         return {
-          text: 'You can reach our customer support at support@medicareplus.com or call us at +91 9876543210.',
+          text: 'Contact options:<br>' +
+                '- Email: support@medicareplus.com<br>' +
+                '- Phone: +91 9876543210 (9am-9pm, 7 days a week)<br>' +
+                '- Live chat: Available on our website<br><br>' +
+                'For medical emergencies, please contact local emergency services.',
           products: []
         };
       }
       else if (lowerQuestion.includes('product') || lowerQuestion.includes('item')) {
         return {
           text: 'Here are some of our popular healthcare products:',
-          products: this.products.slice(0, 3)
+          products: this.getRandomProducts(5)
+        };
+      }
+      else if (lowerQuestion.includes('discount') || lowerQuestion.includes('offer')) {
+        return {
+          text: 'Current promotions:<br>' +
+                '- 15% off on all diabetes care products (code: DIABETES15)<br>' +
+                '- Buy 1 Get 1 Free on selected vitamins<br>' +
+                '- Free shipping on orders over ₹500<br><br>' +
+                'Check our website for the latest offers!',
+          products: this.getRandomProducts(3)
+        };
+      }
+      else if (lowerQuestion.includes('payment') || lowerQuestion.includes('pay')) {
+        return {
+          text: 'We accept various payment methods:<br>' +
+                '- Credit/Debit cards (Visa, Mastercard, Amex)<br>' +
+                '- Net Banking<br>' +
+                '- UPI (PhonePe, Google Pay, Paytm)<br>' +
+                '- EMI options available (select banks)<br>' +
+                '- Cash on Delivery (₹50 charge)',
+          products: []
         };
       }
       
       return null;
     },
     handleRecommendationRequest(question) {
-      const keywords = ['pain', 'vitamin', 'skin', 'heart', 'diabetes', 'blood pressure', 'digest', 'immune', 'sleep', 'stress'];
-      const matchedKeyword = keywords.find(keyword => question.includes(keyword));
+      const categories = [
+        { keywords: ['pain', 'headache', 'backache'], name: 'pain relief' },
+        { keywords: ['vitamin', 'immune', 'immunity'], name: 'vitamins' },
+        { keywords: ['skin', 'acne', 'eczema'], name: 'skin care' },
+        { keywords: ['heart', 'cardio', 'blood pressure'], name: 'heart health' },
+        { keywords: ['diabetes', 'blood sugar'], name: 'diabetes care' },
+        { keywords: ['digest', 'stomach', 'gut'], name: 'digestive health' },
+        { keywords: ['sleep', 'insomnia'], name: 'sleep aids' },
+        { keywords: ['stress', 'anxiety'], name: 'stress relief' },
+        { keywords: ['allergy', 'sinus'], name: 'allergy relief' },
+        { keywords: ['cold', 'flu', 'cough'], name: 'cold & flu' }
+      ];
       
-      if (matchedKeyword) {
+      const matchedCategory = categories.find(cat => 
+        cat.keywords.some(keyword => question.includes(keyword))
+      );
+      
+      if (matchedCategory) {
         const filteredProducts = this.products
-          .filter(p => p.category.includes(matchedKeyword) || 
-                      p.title.toLowerCase().includes(matchedKeyword) ||
-                      p.description.toLowerCase().includes(matchedKeyword))
+          .filter(p => p.category.includes(matchedCategory.name) || 
+                      p.title.toLowerCase().includes(matchedCategory.keywords[0]) ||
+                      p.description.toLowerCase().includes(matchedCategory.keywords[0]))
           .slice(0, 3);
         
-        return {
-          text: `Based on your interest in ${matchedKeyword}, here are some products you might find helpful:`,
-          products: filteredProducts
-        };
-      } else {
-        return {
-          text: 'Here are some of our popular healthcare products:',
-          products: this.products.slice(0, 3)
-        };
-      }
-    },
-    extractProductMentions(text) {
-      const mentionedProducts = [];
-      const productNames = this.products.map(p => p.title);
-      
-      productNames.forEach(name => {
-        if (text.includes(name)) {
-          const product = this.products.find(p => p.title === name);
-          if (product) mentionedProducts.push(product);
+        if (filteredProducts.length > 0) {
+          return {
+            text: `Based on your interest in ${matchedCategory.name}, here are some products you might find helpful:`,
+            products: filteredProducts
+          };
         }
-      });
+      }
       
-      // Limit to 3 products maximum
-      return mentionedProducts.slice(0, 3);
+      // Default recommendation
+      return {
+        text: 'Here are some of our popular healthcare products:',
+        products: this.getRandomProducts(5)
+      };
+    },
+    getRandomProducts(count) {
+      return [...this.products].sort(() => 0.5 - Math.random()).slice(0, count);
+    },
+    getSimilarProducts(product, count) {
+      return this.products
+        .filter(p => p.id !== product.id && p.category === product.category)
+        .sort(() => 0.5 - Math.random())
+        .slice(0, count);
+    },
+    showErrorFallback(question) {
+      return this.showHelpResponse(question);
     },
     viewProduct(product) {
       this.$router.push(`/products/${product.id}`);
